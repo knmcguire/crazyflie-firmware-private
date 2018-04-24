@@ -31,6 +31,9 @@
 #include <stdbool.h>
 #include "syslink.h"
 
+extern uint8_t rssi;
+
+
 void radiolinkInit(void);
 bool radiolinkTest(void);
 void radiolinkSetChannel(uint8_t channel);

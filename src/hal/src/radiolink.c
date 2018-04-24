@@ -55,7 +55,7 @@ static int radiolinkSetEnable(bool enable);
 static int radiolinkReceiveCRTPPacket(CRTPPacket *p);
 
 //Local RSSI variable used to enable logging of RSSI values from Radio
-static uint8_t rssi;
+uint8_t rssi;
 
 static struct crtpLinkOperations radiolinkOp =
 {

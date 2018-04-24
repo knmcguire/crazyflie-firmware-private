@@ -64,6 +64,8 @@
 #include "deck.h"
 #include "extrx.h"
 
+#include "rssi_crazyradio_localization.h"
+
 /* Private variable */
 static bool selftestPassed;
 static bool canFly;
@@ -153,6 +155,9 @@ void systemTask(void *arg)
   systemInit();
   commInit();
   commanderInit();
+
+  //RSSI crazyradio localization
+  rssiCrazyradioLocalizationInit();
 
   StateEstimatorType estimator = anyEstimator;
   deckInit();

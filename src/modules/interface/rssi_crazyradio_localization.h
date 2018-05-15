@@ -16,6 +16,8 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "param.h"
+
 #include "log.h"
 #include "system.h"
 

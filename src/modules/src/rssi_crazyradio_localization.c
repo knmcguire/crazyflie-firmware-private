@@ -2,13 +2,13 @@
 #include <rssi_crazyradio_localization.h>
 #include "debug.h"
 
-
 uint8_t rssi;
+uint8_t start_loc = 0;
 static bool isInit;
 static float distance;
 static float pos_beacon_x;
 static float pos_beacon_y;
-float gamma_rrsi = 1.8f;
+float gamma_rrsi = 4;
 float Pn = 45.0f;
 ekf ekf_rl;
 
@@ -24,7 +24,7 @@ void rssiCrazyradioLocalizationInit(void)
   if (isInit)
     return;
 
-  ekf_rl.dt = 0.1;
+  ekf_rl.dt = 0.01;
   discrete_ekf_new(&ekf_rl);
 
   xTaskCreate(rssiCrazyRadioLocalizationTask,"RSSI_CRAZYRADIO_LOCALIZATION",ZRANGER_TASK_STACKSIZE, NULL,ZRANGER_TASK_PRI,NULL );
@@ -38,43 +38,46 @@ void rssiCrazyRadioLocalizationTask(void* arg)
 
   // Initialize EKF for relative localization
 
-
-  int h = 0;
+  float start_time = 0.02;
+  float end_time = 0.03;
+  //int h = 0;
   while(1) {
+    //TODO: adjust difference in time (dt) to be actually measured from the loop;
 
-    vTaskDelay(200);
+    vTaskDelay(100);
 
-    // get range by rssi crazy radio
-    float temp = (-Pn+(float)rssi)/(10*gamma_rrsi);
-    distance = pow(10,temp);
+    //DEBUG_PRINT("%d\n",rssi);
+    if(start_loc == 1){
+      // get range by rssi crazy radio
+      float temp = (-Pn+(float)rssi)/(10*gamma_rrsi);
+      distance = pow(10,temp);
 
-    // get estimated velocities in NED
-    point_t estimatedVel;
-    estimatorKalmanGetEstimatedVel(&estimatedVel);
-
-
-
-    // Filter predict with model
-    discrete_ekf_predict(&ekf_rl);
-
-
-    // DEBUG_PRINT("check2\n");
-
-    // Filter update with measurements
-    float Z[EKF_M];
-    Z[0]=distance;
-    Z[1]=estimatedVel.x;
-    Z[2]=estimatedVel.y;
-
-    discrete_ekf_update(&ekf_rl, Z);
-
-    pos_beacon_x = ekf_rl.X[0];
-    pos_beacon_y = ekf_rl.X[1];
-    //pos_beacon_x = 0.0f;
-    //pos_beacon_y = 0.0f;
+      // get estimated velocities in NED
+      point_t estimatedVel;
+      estimatorKalmanGetEstimatedVelGlobal(&estimatedVel);
 
 
 
+      // Filter predict with model
+      discrete_ekf_predict(&ekf_rl);
+
+
+      // DEBUG_PRINT("check2\n");
+
+      // Filter update with measurements
+      float Z[EKF_M];
+      Z[0]=distance;
+      Z[1]=estimatedVel.x;
+      Z[2]=estimatedVel.y;
+
+      discrete_ekf_update(&ekf_rl, Z);
+
+      pos_beacon_x = ekf_rl.X[0];
+      pos_beacon_y = ekf_rl.X[1];
+      //pos_beacon_x = 0.0f;
+      //pos_beacon_y = 0.0f;
+
+    }
   }
 
 
@@ -137,8 +140,8 @@ void discrete_ekf_new(ekf* filter)
 
 
   // Initialize state vector
-  filter->X[0] = 2.5;
-  filter->X[1] = 0;
+  filter->X[0] = 0;
+  filter->X[1] = -2;
   filter->X[2] = 0;
   filter->X[2] = 0;
 
@@ -311,7 +314,7 @@ void linear_filter(ekf* filter, float dt)
   filter->A[2][2] = 1.0f;
   filter->A[3][3] = 1.0f;
 
-  filter->A[0][2] = -dt;
+  filter->A[0][2] = dt;
   filter->A[1][3] = dt;
 
   /*
@@ -362,9 +365,17 @@ void linear_measure(ekf* filter)
 
 };
 
+
+
 LOG_GROUP_START(rssiCR)
 LOG_ADD(LOG_UINT8, rssi, &rssi)
 LOG_ADD(LOG_FLOAT, distance, &distance)
 LOG_ADD(LOG_FLOAT, pos_x, &pos_beacon_x)
 LOG_ADD(LOG_FLOAT, pos_y, &pos_beacon_y)
-LOG_GROUP_STOP(rssiCrarssiCRzyradio)
+LOG_GROUP_STOP(rssiCR)
+
+PARAM_GROUP_START(rssiCR)
+PARAM_ADD(PARAM_UINT8, start, &start_loc)
+PARAM_ADD(PARAM_FLOAT, gamma_rrsi, &gamma_rrsi)
+PARAM_ADD(PARAM_FLOAT, Pn, &Pn)
+PARAM_GROUP_STOP(rssiCR)

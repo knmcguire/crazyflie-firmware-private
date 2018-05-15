@@ -1433,6 +1433,12 @@ void estimatorKalmanGetEstimatedVel(point_t* vel) {
   vel->z = S[STATE_PZ];
 }
 
+void estimatorKalmanGetEstimatedVelGlobal(point_t* vel) {
+  vel->x += R[0][0] *  S[STATE_PX] + R[0][1] *  S[STATE_PY];
+  vel->y += R[1][0] * S[STATE_PX] + R[1][1] * S[STATE_PY];
+  vel->z += S[STATE_PZ];
+}
+
 // Temporary development groups
 LOG_GROUP_START(kalman_states)
   LOG_ADD(LOG_FLOAT, ox, &S[STATE_X])

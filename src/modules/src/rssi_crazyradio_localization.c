@@ -24,7 +24,7 @@ void rssiCrazyradioLocalizationInit(void)
   if (isInit)
     return;
 
-  ekf_rl.dt = 0.01;
+  ekf_rl.dt = 0.005;
   discrete_ekf_new(&ekf_rl);
 
   xTaskCreate(rssiCrazyRadioLocalizationTask,"RSSI_CRAZYRADIO_LOCALIZATION",ZRANGER_TASK_STACKSIZE, NULL,ZRANGER_TASK_PRI,NULL );
@@ -38,8 +38,7 @@ void rssiCrazyRadioLocalizationTask(void* arg)
 
   // Initialize EKF for relative localization
 
-  float start_time = 0.02;
-  float end_time = 0.03;
+
   //int h = 0;
   while(1) {
     //TODO: adjust difference in time (dt) to be actually measured from the loop;
@@ -141,7 +140,7 @@ void discrete_ekf_new(ekf* filter)
 
   // Initialize state vector
   filter->X[0] = 0;
-  filter->X[1] = -2;
+  filter->X[1] = -1;
   filter->X[2] = 0;
   filter->X[2] = 0;
 

@@ -8,8 +8,8 @@ static bool isInit;
 static float distance;
 static float pos_beacon_x;
 static float pos_beacon_y;
-float gamma_rrsi = 4;
-float Pn = 45.0f;
+float gamma_rrsi = 2;
+float Pn = 48.0f;
 ekf ekf_rl;
 
 //static discrete_ekf ekf_rl;
@@ -38,6 +38,10 @@ void rssiCrazyRadioLocalizationTask(void* arg)
 
   // Initialize EKF for relative localization
 
+  point_t estimatedPos_prev;
+  estimatedPos_prev.x = 0;
+  estimatedPos_prev.z = 0;
+  estimatedPos_prev.y = 0;
 
   //int h = 0;
   while(1) {
@@ -53,9 +57,14 @@ void rssiCrazyRadioLocalizationTask(void* arg)
 
       // get estimated velocities in NED
       point_t estimatedVel;
-      estimatorKalmanGetEstimatedVelGlobal(&estimatedVel);
+      //estimatorKalmanGetEstimatedVelGlobal(&estimatedVel);
+      point_t estimatedPos;
+      estimatorKalmanGetEstimatedPos(&estimatedPos);
+      estimatedVel.x = (estimatedPos.x - estimatedPos_prev.x) / ekf_rl.dt;
+      estimatedVel.y = (estimatedPos.y - estimatedPos_prev.y) / ekf_rl.dt;
 
-
+      estimatedPos_prev.x= estimatedPos.x;
+      estimatedPos_prev.y= estimatedPos.y;
 
       // Filter predict with model
       discrete_ekf_predict(&ekf_rl);
@@ -122,7 +131,7 @@ void discrete_ekf_new(ekf* filter)
       // All other values are 1
       if (row == col ){
         if(row ==0 )
-          filter->R[row][col] =   2;
+          filter->R[row][col] =   0.8 * 0.8;
         else
           filter->R[row][col] =  0.1*0.1;
       }
@@ -140,7 +149,7 @@ void discrete_ekf_new(ekf* filter)
 
   // Initialize state vector
   filter->X[0] = 0;
-  filter->X[1] = -1;
+  filter->X[1] = -2.0f;
   filter->X[2] = 0;
   filter->X[2] = 0;
 

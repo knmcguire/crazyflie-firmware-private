@@ -8,8 +8,8 @@ static bool isInit;
 static float distance;
 static float pos_beacon_x;
 static float pos_beacon_y;
-float gamma_rrsi = 2;
-float Pn = 48.0f;
+float gamma_rrsi = 4.0f;
+float Pn = 47.0f;
 ekf ekf_rl;
 
 //static discrete_ekf ekf_rl;
@@ -148,8 +148,8 @@ void discrete_ekf_new(ekf* filter)
 
 
   // Initialize state vector
-  filter->X[0] = 0;
-  filter->X[1] = -2.0f;
+  filter->X[0] = -1.0f;
+  filter->X[1] = 0;
   filter->X[2] = 0;
   filter->X[2] = 0;
 
